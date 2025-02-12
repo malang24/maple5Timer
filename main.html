@@ -228,9 +228,12 @@
 
         // 타이머 리셋
         function resetTimer() {
+            // 5분(300초)으로 타이머 초기화
+            seconds = 300;
+            updateTimerDisplay(); // 화면에 업데이트
+
+            // 타이머 상태 초기화
             clearInterval(timer);
-            seconds = 300; // 5분으로 초기화
-            updateTimerDisplay();
             isRunning = false;
             startButton.disabled = false;
             pauseButton.disabled = true;
