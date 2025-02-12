@@ -17,7 +17,7 @@
             src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2207-01@1.0/MabinogiClassicR.woff2') format('woff2');
             font-weight: normal;
             font-style: normal;
-}
+        }
 
         body {
             font-family: MabinogiClassicR;
@@ -82,8 +82,15 @@
     </style>
 </head>
 <body>
-
+    
+    
     🍁 <div class="timer" id="timer">05:00</div>
+
+    <div>
+        <label for="timerInput">타이머 시간 (분): </label>
+        <input type="number" id="timerInput" value="5" min="0"  style="margin-bottom: 10px;" oninput="updateTimerFromInput()" />
+        분
+    </div>
 
     <div class="alertCheckBox" >
         <label>
@@ -93,8 +100,8 @@
     
     <div class="buttons">
         <button id="startButton" style="background-color: green;">시작</button>
-        <button id="pauseButton" style="background-color: red;"disabled>일시 정지</button>
-        <button id="resetButton" style="background-color: yellowgreen"; disabled>리셋</button>
+        <button id="pauseButton" style="background-color: red;" disabled>일시 정지</button>
+        <button id="resetButton" style="background-color: yellowgreen" disabled>리셋</button>
     </div>
 
     <!-- 경험치 및 메소 입력 필드 -->
@@ -119,23 +126,21 @@
         <div>
             <label for="newMesoInput">새로운 메소:</label>
             <input type="text" id="newMesoInput" placeholder="새로운 메소 입력" oninput="formatNumber(this); handleCalculation()">
-                    원
+            원
         </div>        
 
-        <div> 제작 메이플랜드 : 광부 길드 </div>
+        <div> @제작 메이플랜드 : 광부 길드 </div>
     </div>
 
     <script>
         let timer;
         let seconds = 300; // 5분 (300초)
-        //let seconds = 10; // 5분 (300초)
         let isRunning = false;
 
         const timerElement = document.getElementById('timer');
         const startButton = document.getElementById('startButton');
         const pauseButton = document.getElementById('pauseButton');
         const resetButton = document.getElementById('resetButton');
-        const calculateButton = document.getElementById('calculateButton');
         
         let createdNewFields = false; // 새로운 입력 필드 생성 여부 확인
 
@@ -195,6 +200,24 @@
             resetButton.disabled = false;
         }
 
+
+       // input 값에 따라 타이머 시간 업데이트
+       function updateTimerFromInput() {
+            let timerInput = document.getElementById('timerInput');
+            let inputMinutes = parseInt(timerInput.value);
+            if (isNaN(inputMinutes) || inputMinutes < 0) {
+                inputMinutes = 0; // 유효하지 않은 값 입력 시 0으로 설정
+            }
+            if (timerInput.value.length > 2) {
+                timerInput.value = timerInput.value.slice(0, 2); // 5자리로 제한
+            }
+
+
+            seconds = inputMinutes * 60; // 분 -> 초로 변환
+            updateTimerDisplay();
+        }
+
+
         // 타이머 일시 정지
         function pauseTimer() {
             clearInterval(timer);
@@ -212,7 +235,6 @@
             startButton.disabled = false;
             pauseButton.disabled = true;
             resetButton.disabled = true;
-          //  calculateButton.disabled = true;
         }
 
         // 숫자 형식화 함수 (천단위 구분자 추가)
@@ -227,8 +249,7 @@
             updateKoreanLabel(input);
         }
 
-       // 숫자를 한글로 변환하는 함수 (풀어쓰기 형식)
-       // 숫자를 한글로 변환하는 함수 (풀어쓰기 형식)
+        // 숫자를 한글로 변환하는 함수 (풀어쓰기 형식)
         function convertToKorean(num) {
             const units = ["", "십", "백", "천", "만", "억", "조"];
             const numbers = ["", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구"];
@@ -281,25 +302,12 @@
             return result;
         }
 
-
-
         // 한글 표기 업데이트 함수
         function updateKoreanLabel(input) {
             const value = input.value.replace(/[^\d]/g, ''); // 숫자 외의 문자 제거
             const koreanLabel = convertToKorean(parseInt(value));
-            const id = input.id;
-
-            /*
-            if (id === "expInput") {
-                document.getElementById('expInputKorean').innerText = koreanLabel;
-            } else if (id === "mesoInput") {
-                document.getElementById('mesoInputKorean').innerText = koreanLabel;
-            }
-                */
         }
 
-    
-   
         // 시작 버튼 클릭 시 타이머 시작
         startButton.addEventListener('click', function() {
             if (!isRunning) {
@@ -317,43 +325,41 @@
         // 리셋 버튼 클릭 시 타이머 리셋
         resetButton.addEventListener('click', resetTimer);
 
-
         // 초기 타이머 디스플레이 업데이트
         updateTimerDisplay();
 
-        
         // 계산 함수
-            function handleCalculation() {
-                // 기존 경험치와 메소 입력값
-                const expInput = document.getElementById('expInput').value.replace(/[^\d]/g, ''); // 숫자 외의 문자 제거
-                const mesoInput = document.getElementById('mesoInput').value.replace(/[^\d]/g, ''); // 숫자 외의 문자 제거
+        function handleCalculation() {
+            // 기존 경험치와 메소 입력값
+            const expInput = document.getElementById('expInput').value.replace(/[^\d]/g, ''); // 숫자 외의 문자 제거
+            const mesoInput = document.getElementById('mesoInput').value.replace(/[^\d]/g, ''); // 숫자 외의 문자 제거
 
-                // 새로운 경험치와 메소 입력값
-                const newExpInput = document.getElementById('newExpInput').value.replace(/[^\d]/g, ''); // 숫자 외의 문자 제거
-                const newMesoInput = document.getElementById('newMesoInput').value.replace(/[^\d]/g, ''); // 숫자 외의 문자 제거
+            // 새로운 경험치와 메소 입력값
+            const newExpInput = document.getElementById('newExpInput').value.replace(/[^\d]/g, ''); // 숫자 외의 문자 제거
+            const newMesoInput = document.getElementById('newMesoInput').value.replace(/[^\d]/g, ''); // 숫자 외의 문자 제거
 
-                // 값이 비어있으면 계산하지 않음
-                let resultText = '';
+            // 값이 비어있으면 계산하지 않음
+            let resultText = '';
 
-                // 경험치 차이 계산 (경험치와 새로운 경험치가 모두 입력된 경우)
-                if (expInput !== '' && newExpInput !== '') {
-                    const expValue = parseInt(expInput);
-                    const newExpValue = parseInt(newExpInput);
-                    const expDifference = newExpValue - expValue;
-                    resultText += `<p><img src="/maple5Timer/exp.png" alt="경험치 아이콘" style="width: 20px; height: 20px; margin-right: 8px;">경험치 차이  : ${expDifference.toLocaleString()} exp</p>`;
-                }
-
-                // 메소 차이 계산 (메소와 새로운 메소가 모두 입력된 경우)
-                if (mesoInput !== '' && newMesoInput !== '') {
-                    const mesoValue = parseInt(mesoInput);
-                    const newMesoValue = parseInt(newMesoInput);
-                    const mesoDifference = newMesoValue - mesoValue;
-                    resultText += `<p><img src="/maple5Timer/meso.png" alt="메소 아이콘" style="width: 20px; height: 20px; margin-right: 8px;">메소 차이  : ${mesoDifference.toLocaleString()} 원</p>`;
-                }
-
-                // 결과가 없으면 공백을 출력하지 않음
-                document.getElementById('calculationResult').innerHTML = resultText;
+            // 경험치 차이 계산 (경험치와 새로운 경험치가 모두 입력된 경우)
+            if (expInput !== '' && newExpInput !== '') {
+                const expValue = parseInt(expInput);
+                const newExpValue = parseInt(newExpInput);
+                const expDifference = newExpValue - expValue;
+                resultText += `<p><img src="/maple5Timer/exp.png" alt="경험치 아이콘" style="width: 20px; height: 20px; margin-right: 8px;">경험치 차이  : ${expDifference.toLocaleString()} exp</p>`;
             }
+
+            // 메소 차이 계산 (메소와 새로운 메소가 모두 입력된 경우)
+            if (mesoInput !== '' && newMesoInput !== '') {
+                const mesoValue = parseInt(mesoInput);
+                const newMesoValue = parseInt(newMesoInput);
+                const mesoDifference = newMesoValue - mesoValue;
+                resultText += `<p><img src="/maple5Timer/meso.png" alt="메소 아이콘" style="width: 20px; height: 20px; margin-right: 8px;">메소 차이  : ${mesoDifference.toLocaleString()} 원</p>`;
+            }
+
+            // 결과가 없으면 공백을 출력하지 않음
+            document.getElementById('calculationResult').innerHTML = resultText;
+        }
 
     </script>
 
