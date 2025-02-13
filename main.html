@@ -101,7 +101,7 @@
     <div class="buttons">
         <button id="startButton" style="background-color: green;">시작</button>
         <button id="pauseButton" style="background-color: red;" disabled>일시 정지</button>
-        <button id="resetButton" style="background-color: yellowgreen" disabled>리셋</button>
+        <button id="resetButton" style="background-color: yellowgreen" >리셋</button>
     </div>
 
     <!-- 경험치 및 메소 입력 필드 -->
@@ -201,19 +201,23 @@
         }
 
 
-       // input 값에 따라 타이머 시간 업데이트
-       function updateTimerFromInput() {
+        function updateTimerFromInput() {
             let timerInput = document.getElementById('timerInput');
-            let inputMinutes = parseInt(timerInput.value);
-            if (isNaN(inputMinutes) || inputMinutes < 0) {
-                inputMinutes = 0; // 유효하지 않은 값 입력 시 0으로 설정
-            }
-            if (timerInput.value.length > 2) {
-                timerInput.value = timerInput.value.slice(0, 2); // 5자리로 제한
+            let inputValue = timerInput.value;
+
+            // 숫자가 아닌 문자가 들어갔을 경우 제거
+            inputValue = inputValue.replace(/[^\d]/g, '');
+
+            // 3자리로 제한
+            if (inputValue.length > 3) {
+                inputValue = inputValue.slice(0, 3);
             }
 
+            timerInput.value = inputValue;
 
-            seconds = inputMinutes * 60; // 분 -> 초로 변환
+            // 초로 변환하여 타이머 업데이트
+            let inputMinutes = parseInt(inputValue) || 0;
+            seconds = inputMinutes * 60;
             updateTimerDisplay();
         }
 
@@ -227,90 +231,34 @@
         }
 
         // 타이머 리셋
-        function resetTimer() {
-            // 5분(300초)으로 타이머 초기화
-            seconds = 300;
-            updateTimerDisplay(); // 화면에 업데이트
+         function resetTimer() {
+            // 타이머가 실행 중일 때 리셋 버튼을 누르면 알림창을 띄움
+            if (isRunning) {
+                alert("타이머가 진행중입니다. 일시 정지를 눌러야 리셋이 가능합니다.");
+                return; // 리셋 동작을 중지
+            }
+
+            // 타이머가 시작되지 않았거나, 일시 정지 상태일 때 리셋 처리
+            seconds = 300;  // 5분(300초)으로 설정
+            updateTimerDisplay();  // 화면에 업데이트
 
             // 타이머 상태 초기화
             clearInterval(timer);
             isRunning = false;
+
+             // 타이머 input도 초기화 (5로 설정)
+            const timerInput = document.getElementById('timerInput');
+            timerInput.value = 5;
+
+            // 버튼 상태 업데이트
             startButton.disabled = false;
             pauseButton.disabled = true;
-            resetButton.disabled = true;
+            //resetButton.disabled = true;
+            resetButton.disabled = false;
         }
 
-        // 숫자 형식화 함수 (천단위 구분자 추가)
-        function formatNumber(input) {
-            let value = input.value.replace(/[^\d]/g, ''); // 숫자 외의 문자 제거
-
-            // 천단위 구분자 추가
-            value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-            input.value = value;
-
-            // 한글 표기 업데이트
-            updateKoreanLabel(input);
-        }
-
-        // 숫자를 한글로 변환하는 함수 (풀어쓰기 형식)
-        function convertToKorean(num) {
-            const units = ["", "십", "백", "천", "만", "억", "조"];
-            const numbers = ["", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구"];
-
-            if (num === 0) return "영"; // 0일 경우 "영"을 반환
-
-            let result = "";
-            let unitIndex = 0;  // 단위 인덱스
-            let prevUnit = 0;  // 숫자가 0인 경우 건너뛰기 위한 변수
-
-            // 숫자를 1부터 9로 바꾸고 각 단위에 맞게 분리
-            while (num > 0) {
-                const digit = num % 10;  // 현재 자리의 숫자
-                if (digit > 0) {
-                    if (unitIndex > 0 && prevUnit > 0) {
-                        // "십", "백", "천" 등의 단위 앞에서 숫자가 0인 경우 건너뛰기
-                        result = numbers[digit] + units[unitIndex] + result;
-                    } else {
-                        result = numbers[digit] + units[unitIndex] + result;
-                    }
-                } else if (unitIndex > 0 && prevUnit > 0) {
-                    // 0이 있고 이전 단위가 숫자가 있으면 "만", "억" 등의 단위만 추가
-                    result = units[unitIndex] + result;
-                }
-
-                prevUnit = digit;
-                num = Math.floor(num / 10);  // 한 자리를 제외하고 나머지 숫자 처리
-                unitIndex++;
-
-                // 4자리마다 "만" 단위로 구분하고 "만"을 추가
-                if (unitIndex === 4) {
-                    unitIndex = 0;
-                    result = units[4] + result;  // "만" 추가
-                }
-            }
-
-            // 불필요한 "일"을 제거하여 적절한 표기
-            result = result
-                .replace(/일십/g, "십")   // "일십"을 "십"으로 변환
-                .replace(/일백/g, "백")   // "일백"을 "백"으로 변환
-                .replace(/일천/g, "천")   // "일천"을 "천"으로 변환
-                .replace(/일만/g, "만")   // "일만"을 "만"으로 변환
-                .replace(/일억/g, "억")   // "일억"을 "억"으로 변환
-                .replace(/일조/g, "조")   // "일조"를 "조"으로 변환
-                .replace(/이십/g, "십");  // "이십"을 "십"으로 변환
-
-            // "천만"의 경우 처리
-            result = result.replace(/일천만/g, "천만");
-
-            return result;
-        }
-
-        // 한글 표기 업데이트 함수
-        function updateKoreanLabel(input) {
-            const value = input.value.replace(/[^\d]/g, ''); // 숫자 외의 문자 제거
-            const koreanLabel = convertToKorean(parseInt(value));
-        }
-
+      
+      
         // 시작 버튼 클릭 시 타이머 시작
         startButton.addEventListener('click', function() {
             if (!isRunning) {
@@ -363,6 +311,17 @@
             // 결과가 없으면 공백을 출력하지 않음
             document.getElementById('calculationResult').innerHTML = resultText;
         }
+
+           // 숫자 형식화 함수 (천단위 구분자 추가)
+           function formatNumber(input) {
+            let value = input.value.replace(/[^\d]/g, ''); // 숫자 외의 문자 제거
+
+            // 천단위 구분자 추가
+            value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            input.value = value;
+
+        }
+
 
     </script>
 
